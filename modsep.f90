@@ -24,14 +24,19 @@ program test_io_1
 	    z(k) = z(k-1) + dz
 	  end do
 
+		!open(2, file='mod2.dat')
+		!open(3, file='mod3.dat')
+
+		!max = 0.d0
+		!Do x_o = 0.1, 0.2, 0.01
 		! object, module_name, temp (oC), Am0 (m2), Diam (m), &
 		!		Diam_OD (m), Ntubes, Lfth (Nm3/hr), xf, x0
-		Call configure(mod1, 'Module 1', 25.0d0, 40d0, 240.d-6, &
+		Call configure(mod1, 'Module 1', 25.0d0, 250d0, 240.d-6, &
 					420.d-6, 24000, 100.0d0, 0.35d0, 0.17d0) ! 0.17 60-75% CH4 = 40-25% CO2
-		Call configure(mod2, 'Module 2', 25.0d0, 40d0, 240.d-6, &
-					420.d-6, 24000, 100.0d0, 0.17d0, 0.09d0) ! 0.09 0.1
-		Call configure(mod3, 'Module 3', 25.0d0, 40d0, 240.d-6, &
-					420.d-6, 24000, 100.0d0, 0.86d0, 0.13d0) ! 0.13 0.15
+		Call configure(mod2, 'Module 2', 25.0d0, 250d0, 240.d-6, &
+					420.d-6, 24000, 100.0d0, 0.17d0, 0.09d0) ! 0.09 0.1 (0.15 shows very good results for the 3 membrane)
+		Call configure(mod3, 'Module 3', 25.0d0, 50d0, 240.d-6, &
+					420.d-6, 24000, 100.0d0, 0.86d0, 0.17d0) ! 0.13 0.15 0.17
 
 				x_dummy = mod1 % inlet % composition(1)
     recycle:Do While (.TRUE.)
@@ -55,6 +60,24 @@ program test_io_1
 						Cycle recycle
 				 End If
 		End do recycle
+
+		!If(mod3%purity + mod3%recovery > max) Then
+		!	max = mod3%purity + mod3%recovery
+		!	optim_x0=x_o
+		!	optim_recov=mod3%recovery
+		!	optim_pur=mod3%purity
+		!End If
+  !End Do
+
+		!write(2, *) 'Optimal results with x0 = ', optim_x0
+		!write(2, *) 'optim_recovery = ', optim_recov
+		!write(2, *) 'optim_purity = ', optim_pur
+		!close(2)
+
+		!write(3, *) 'Optimal results with x0 = ', optim_x0
+		!write(3, *) 'optim_recovery = ', optim_recov
+		!write(3, *) 'optim_purity = ', optim_pur
+		!close(3)
 
 		print *, '---------'
 		print *, 'Module 1'
