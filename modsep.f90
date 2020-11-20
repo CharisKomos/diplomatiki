@@ -1,15 +1,16 @@
 !!!---------------!!!
 !!! Main Program  !!!
 !!!---------------!!!
-
+! The composition(1) will be the CO2 and the product will come from the retentate side of the membrane and will be CH4
+! The permeate side of stage 2 and the retentate side of stage 3 will be the recycling streams.
 program test_io_1
 	use universal_parameters
 	use membrane_modules
 
 	implicit none
 	real*8, dimension(nm) :: z
-        real*8 :: dz, dx0, x_dummy
-        integer :: k, inx
+	real*8 :: dz, dx0, x_dummy
+	integer :: k, inx
 
 	! Declare three membrane modules
 	type(membrane_module) :: mod1
@@ -23,26 +24,23 @@ program test_io_1
 	    z(k) = z(k-1) + dz
 	  end do
 
-	  ! According to preceding order that will be chosen, x0 and x0f will be retrieved from the first module e.g. mod1
-	  ! The recycled flows will be handled in a later written subroutine
-	  ! Call create_order(mod1, mod2, mod3) ! Ready
-		open(1, file='results2.dat');
+		open(1, file='results.dat');
 		! object, module_name, temp (oC), Am0 (m2), Diam (m), &
 		!		Diam_OD (m), Ntubes, Lfth (Nm3/hr), xf, x0
 		Call configure(mod1, 'Module 1', 25.0d0, 0.95d0, 240.d-6, &
-					420.d-6, 4000, 1.0d0, 0.65d0, 0.649d0)
+					420.d-6, 4000, 1.0d0, 0.35d0, 0.349d0) ! 60-75% CH4 = 40-25% CO2
 		Call configure(mod2, 'Module 2', 25.0d0, 0.95d0, 240.d-6, &
-					420.d-6, 4000, 1.0d0, 0.45d0, 0.08d0)
+					420.d-6, 4000, 1.0d0, 0.15d0, 0.05d0)
 		Call configure(mod3, 'Module 3', 25.0d0, 0.95d0, 240.d-6, &
-					420.d-6, 4000, 1.0d0, 0.45d0, 0.2d0)
+					420.d-6, 4000, 1.0d0, 0.1d0, 0.05d0)
 
 				x_dummy = mod1 % inlet % composition(1)
                 recycle:Do While (.TRUE.)
 
 		   	 Call solve(mod1, z, dz)
 
-				 mod2 % inlet % composition(1) = mod1 % outlet_permeate % composition(1)
-				 mod3 % inlet % composition(1) = mod1 % outlet_feed % composition(1)
+				 mod2 % inlet % composition(1) = mod1 % outlet_feed % composition(1)
+				 mod3 % inlet % composition(1) = mod1 % outlet_permeate % composition(1)
 
 				 Call solve(mod2, z, dz)
 				 Call solve(mod3, z, dz)
@@ -62,9 +60,9 @@ program test_io_1
 
 
 		write(1, *) mod1%mname
-		write(1, *) mod1 % theta, mod1 % y1, mod1 % xN, mod1 % purity, mod1%recovery
+		write(1, *) mod1 % theta, mod1 % y1, mod1 % xN, mod1 % purity0, mod1%recovery0
 		write(1, *) mod2%mname
-		write(1, *) mod2 % theta, mod2 % y1, mod2 % xN, mod2 % purity, mod2%recovery
+		write(1, *) mod2 % theta, mod2 % y1, mod2 % xN, mod2 % purity0, mod2%recovery0
 		write(1, *) mod3%mname
 		write(1, *) mod3 % theta, mod3 % y1, mod3 % xN, mod3 % purity, mod3%recovery
 		close(1)
@@ -72,12 +70,12 @@ program test_io_1
 		print *, '---------'
 		print *, 'Module 1'
 		print *, '---------'
-		print *, mod1 % theta, mod1 % y1, mod1 % xN, mod1 % purity, mod1%recovery
+		print *, mod1 % theta, mod1 % y1, mod1 % xN, mod1 % purity0, mod1%recovery0
 
 		print *, '---------'
 		print *, 'Module 2'
 		print *, '---------'
-		print *, mod2%theta, mod2%y1, mod2%xN, mod2%purity, mod2%recovery
+		print *, mod2%theta, mod2%y1, mod2%xN, mod2%purity0, mod2%recovery0
 		print *, '---------'
 		print *, 'Module 3'
 		print *, '---------'
@@ -170,6 +168,7 @@ module membrane_modules
 					mn%Pbt 	= 3.2d-6* (76.d0/1.d5) / 100.d0
 					mn%fha 	= 0.952d0
 					mn%fhb	= 1.d0
+
 				Else If(mn%mname == 'Module 3') Then
 					mn%Ph00 = 2.d0
 					mn%Pl00 = 0.d0
@@ -178,8 +177,10 @@ module membrane_modules
 					mn%Pbt 	= 2.8d-6* (76.d0/1.d5) / 100.d0
 					mn%fha 	= 1.d0
 					mn%fhb	= 1.d0
+
 				Else
 					print *, 'An error occured with module name'
+
 				End If
 
 
@@ -444,9 +445,9 @@ module membrane_modules
 		Class(membrane_module) :: mod3
 
 		mod1%inlet%composition(1) = (mod1%inlet%flowrate*mod1%inlet%composition(1) &
-									 + mod2%outlet_feed%flowrate*mod2%outlet_feed%composition(1) &
-					+ mod3%outlet_permeate%flowrate*mod3%outlet_permeate%composition(1)) &
-														/ (mod1%inlet%flowrate + mod2%outlet_feed%flowrate &
-														+ mod3%outlet_permeate%flowrate)
+					 + mod2%outlet_permeate%flowrate*mod2%outlet_permeate%composition(1) &
+									+ mod3%outlet_feed%flowrate*mod3%outlet_feed%composition(1)) &
+												/ (mod1%inlet%flowrate + mod2%outlet_permeate%flowrate &
+														+ mod3%outlet_feed%flowrate)
    end subroutine mix_flows
 end module membrane_modules
