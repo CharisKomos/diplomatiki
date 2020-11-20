@@ -24,18 +24,14 @@ program test_io_1
 	    z(k) = z(k-1) + dz
 	  end do
 
-		open(1, file='mod2.dat');
-
-		max = 0.d0
-		Do x_o = 0.01, 0.169, 0.01
 		! object, module_name, temp (oC), Am0 (m2), Diam (m), &
 		!		Diam_OD (m), Ntubes, Lfth (Nm3/hr), xf, x0
-		Call configure(mod1, 'Module 1', 25.0d0, 0.95d0, 240.d-6, &
-					420.d-6, 4000, 1.0d0, 0.35d0, 0.17d0) ! 60-75% CH4 = 40-25% CO2
-		Call configure(mod2, 'Module 2', 25.0d0, 0.95d0, 240.d-6, &
-					420.d-6, 4000, 1.0d0, 0.17d0, x_o)
-		Call configure(mod3, 'Module 3', 25.0d0, 0.95d0, 240.d-6, &
-					420.d-6, 4000, 1.0d0, 0.89d0, 0.1d0)
+		Call configure(mod1, 'Module 1', 25.0d0, 40d0, 240.d-6, &
+					420.d-6, 24000, 100.0d0, 0.35d0, 0.17d0) ! 0.17 60-75% CH4 = 40-25% CO2
+		Call configure(mod2, 'Module 2', 25.0d0, 40d0, 240.d-6, &
+					420.d-6, 24000, 100.0d0, 0.17d0, 0.09d0) ! 0.09 0.1
+		Call configure(mod3, 'Module 3', 25.0d0, 40d0, 240.d-6, &
+					420.d-6, 24000, 100.0d0, 0.86d0, 0.13d0) ! 0.13 0.15
 
 				x_dummy = mod1 % inlet % composition(1)
     recycle:Do While (.TRUE.)
@@ -59,28 +55,6 @@ program test_io_1
 						Cycle recycle
 				 End If
 		End do recycle
-
-		If( mod2%purity0 + mod2%recovery0 > max) Then
-			max = mod2%purity0 + mod2%recovery0
-			optim_x0 = x_o
-			optim_pur = mod2%purity0
-			optim_recov = mod2%recovery0
-		End If
-  End Do
-
-
-
-		write(1, *) 'Optimal values for ', mod2%mname
-		write(1, *) 'optim_x0 = ', optim_x0
-		write(1, *) 'optim_pur = ', optim_pur
-		write(1, *) 'optim_recov = ', optim_recov
-		write(1, *) 'Results : '
-		write(1, *) mod2 % theta, mod2 % y1, mod2 % xN, mod2 % purity0, mod2%recovery0
-		!write(1, *) mod2%mname
-		!write(1, *) mod2 % theta, mod2 % y1, mod2 % xN, mod2 % purity0, mod2%recovery0
-		!write(1, *) mod3%mname
-		!write(1, *) mod3 % theta, mod3 % y1, mod3 % xN, mod3 % purity, mod3%recovery
-		close(1)
 
 		print *, '---------'
 		print *, 'Module 1'
@@ -247,24 +221,24 @@ module membrane_modules
 
 			Select Case (nint(mn%Ph00))
 				Case (10)
-					mn%Pat 	= 85.3d-6
-					mn%Pbt 	= 3.2d-6
-					mn%fha 	= 0.952d0
-					mn%fhb	= 1.d0
+					mn%Pbt 	= 85.3d-6
+					mn%Pat 	= 3.2d-6
+					mn%fhb 	= 0.952d0
+					mn%fha	= 1.d0
 					optionA = 0.1d0
 					optionB = 0.08d0
 				Case (6)
-					mn%Pat 	= 86.0d-6
-					mn%Pbt 	= 3.0d-6
-					mn%fha 	= 0.9712d0
-					mn%fhb	= 1.d0
+					mn%Pbt 	= 86.0d-6
+					mn%Pat 	= 3.0d-6
+					mn%fhb 	= 0.9712d0
+					mn%fha	= 1.d0
 					optionA = 0.08d0
 					optionB = 0.5d0
 				Case (2)
-					mn%Pat 	= 95.0d-6
-					mn%Pbt 	= 2.8d-6
-					mn%fha 	= 1.d0
-					mn%fhb	= 1.d0
+					mn%Pbt 	= 95.0d-6
+					mn%Pat 	= 2.8d-6
+					mn%fhb 	= 1.d0
+					mn%fha	= 1.d0
 					optionA = 0.015d0
 					optionB = 0.003d0
 			End Select
@@ -395,8 +369,8 @@ module membrane_modules
        mn % xN = x(N)
 
 			 mn % inlet % flowrate = mn % flr
-			 mn % outlet_feed % flowrate = L(N)
-			 mn % outlet_permeate % flowrate = V(1)
+			 mn % outlet_feed % flowrate = L(N)*mn%Lfth
+			 mn % outlet_permeate % flowrate = V(1)*mn%Lfth
 
        mn % outlet_feed % composition(1) = mn % xN
 			 mn % outlet_feed % composition(2) = 1.d0 - mn % xN

@@ -140,24 +140,24 @@ module membrane_modules
 
 			Select Case (nint(mn%Ph00))
 				Case (10)
-					mn%Pat 	= 85.3d-6
-					mn%Pbt 	= 3.2d-6
-					mn%fha 	= 0.952d0
-					mn%fhb	= 1.d0
+					mn%Pbt 	= 85.3d-6
+					mn%Pat 	= 3.2d-6
+					mn%fhb 	= 0.952d0
+					mn%fha	= 1.d0
 					optionA = 0.1d0
 					optionB = 0.08d0
 				Case (6)
-					mn%Pat 	= 86.0d-6
-					mn%Pbt 	= 3.0d-6
-					mn%fha 	= 0.9712d0
-					mn%fhb	= 1.d0
+					mn%Pbt 	= 86.0d-6
+					mn%Pat 	= 3.0d-6
+					mn%fhb 	= 0.9712d0
+					mn%fha	= 1.d0
 					optionA = 0.08d0
 					optionB = 0.5d0
 				Case (2)
-					mn%Pat 	= 95.0d-6
-					mn%Pbt 	= 2.8d-6
-					mn%fha 	= 1.d0
-					mn%fhb	= 1.d0
+					mn%Pbt 	= 95.0d-6
+					mn%Pat 	= 2.8d-6
+					mn%fhb 	= 1.d0
+					mn%fha	= 1.d0
 					optionA = 0.015d0
 					optionB = 0.003d0
 			End Select
