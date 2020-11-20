@@ -9,7 +9,7 @@ program test_io_1
 
 	implicit none
 	real*8, dimension(nm) :: z
-	real*8 :: dz, dx0, x_dummy
+	real*8 :: dz, dx0, x_dummy, x_o, max, optim_recov, optim_pur, optim_x0
 	integer :: k, inx
 
 	! Declare three membrane modules
@@ -24,18 +24,21 @@ program test_io_1
 	    z(k) = z(k-1) + dz
 	  end do
 
-		open(1, file='results.dat');
+		open(1, file='mod2.dat');
+
+		max = 0.d0
+		Do x_o = 0.01, 0.169, 0.01
 		! object, module_name, temp (oC), Am0 (m2), Diam (m), &
 		!		Diam_OD (m), Ntubes, Lfth (Nm3/hr), xf, x0
 		Call configure(mod1, 'Module 1', 25.0d0, 0.95d0, 240.d-6, &
-					420.d-6, 4000, 1.0d0, 0.35d0, 0.349d0) ! 60-75% CH4 = 40-25% CO2
+					420.d-6, 4000, 1.0d0, 0.35d0, 0.17d0) ! 60-75% CH4 = 40-25% CO2
 		Call configure(mod2, 'Module 2', 25.0d0, 0.95d0, 240.d-6, &
-					420.d-6, 4000, 1.0d0, 0.15d0, 0.05d0)
+					420.d-6, 4000, 1.0d0, 0.17d0, x_o)
 		Call configure(mod3, 'Module 3', 25.0d0, 0.95d0, 240.d-6, &
-					420.d-6, 4000, 1.0d0, 0.1d0, 0.05d0)
+					420.d-6, 4000, 1.0d0, 0.89d0, 0.1d0)
 
 				x_dummy = mod1 % inlet % composition(1)
-                recycle:Do While (.TRUE.)
+    recycle:Do While (.TRUE.)
 
 		   	 Call solve(mod1, z, dz)
 
@@ -57,14 +60,26 @@ program test_io_1
 				 End If
 		End do recycle
 
+		If( mod2%purity0 + mod2%recovery0 > max) Then
+			max = mod2%purity0 + mod2%recovery0
+			optim_x0 = x_o
+			optim_pur = mod2%purity0
+			optim_recov = mod2%recovery0
+		End If
+  End Do
 
 
-		write(1, *) mod1%mname
-		write(1, *) mod1 % theta, mod1 % y1, mod1 % xN, mod1 % purity0, mod1%recovery0
-		write(1, *) mod2%mname
+
+		write(1, *) 'Optimal values for ', mod2%mname
+		write(1, *) 'optim_x0 = ', optim_x0
+		write(1, *) 'optim_pur = ', optim_pur
+		write(1, *) 'optim_recov = ', optim_recov
+		write(1, *) 'Results : '
 		write(1, *) mod2 % theta, mod2 % y1, mod2 % xN, mod2 % purity0, mod2%recovery0
-		write(1, *) mod3%mname
-		write(1, *) mod3 % theta, mod3 % y1, mod3 % xN, mod3 % purity, mod3%recovery
+		!write(1, *) mod2%mname
+		!write(1, *) mod2 % theta, mod2 % y1, mod2 % xN, mod2 % purity0, mod2%recovery0
+		!write(1, *) mod3%mname
+		!write(1, *) mod3 % theta, mod3 % y1, mod3 % xN, mod3 % purity, mod3%recovery
 		close(1)
 
 		print *, '---------'
@@ -76,6 +91,7 @@ program test_io_1
 		print *, 'Module 2'
 		print *, '---------'
 		print *, mod2%theta, mod2%y1, mod2%xN, mod2%purity0, mod2%recovery0
+
 		print *, '---------'
 		print *, 'Module 3'
 		print *, '---------'
