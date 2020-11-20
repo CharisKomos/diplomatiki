@@ -8,8 +8,8 @@ program test_io_1
 
 	implicit none
 	real*8, dimension(nm) :: z
-  real*8 :: dz, dx0, x_dummy
-  integer :: k, inx
+        real*8 :: dz, dx0, x_dummy
+        integer :: k, inx
 
 	! Declare three membrane modules
 	type(membrane_module) :: mod1
@@ -37,7 +37,7 @@ program test_io_1
 					420.d-6, 4000, 1.0d0, 0.45d0, 0.2d0)
 
 				x_dummy = mod1 % inlet % composition(1)
-recycle:Do While (.TRUE.)
+                recycle:Do While (.TRUE.)
 
 		   	 Call solve(mod1, z, dz)
 
