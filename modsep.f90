@@ -9,7 +9,7 @@ program test_io_1
 
 	implicit none
 	real*8, dimension(nm) :: z
-	real*8 :: dz, dx0, x_dummy, x_o, max, optim_recov, optim_pur, optim_x0
+	real*8 :: dz, dx0, x_dummy, x_o, max, optim_recov, optim_pur, optim_x0, xs, fxo, tmax
 	integer :: k, inx
 
 	! Declare three membrane modules
@@ -28,15 +28,17 @@ program test_io_1
 		!open(2, file='mod2.dat')
 		!open(3, file='mod3.dat')
 
-		!max = 0.d0
-		!Do x_o = 1, 2
+		max = 0.d0
+  Do xs = 0.258, 0.35, 0.01
+		fxo = xs - 0.01
+		Do x_o = 0.099, fxo, 0.01
 			! object, module_name, temp (oC), Am0 (m2), Diam (m), &
 			!		Diam_OD (m), Ntubes, Lfth (Nm3/hr), xf, x0
-			Call configure(mod1, 'Module 1', 15.0d0, 250d0, 240.d-6, &
-						420.d-6, 24000, 100.0d0, 0.3d0, 0.2d0) ! 0.17 60-75% CH4 = 40-25% CO2
-			Call configure(mod2, 'Module 2', 15.0d0, 250d0, 240.d-6, &
-						420.d-6, 24000, 100.0d0, 0.249d0, 0.099d0) ! 0.099 0.1 (0.15 shows very good results for the 3 membrane)
-			Call configure(mod3, 'Module 3', 15.0d0,  50d0, 240.d-6, &
+			Call configure(mod1, 'Module 1', 15.0d0, 240d0, 240.d-6, &
+						420.d-6, 24000, 120.0d0, 0.35d0, x_o) ! 0.17 60-75% CH4 = 40-25% CO2 - Optimized was from 0.258-0.295
+			Call configure(mod2, 'Module 2', 25.0d0, 720d0, 240.d-6, &
+						420.d-6, 24000, 100.0d0, 0.249d0, 0.055d0) ! 0.0999 0.1 0.22 (0.15 shows very good results for the 3 membrane)
+			Call configure(mod3, 'Module 3', 15.0d0, 240d0, 240.d-6, &
 						420.d-6, 24000, 100.0d0, 0.86d0, 0.1699d0) ! 0.13 0.15 0.17
 
 			x_dummy = mod1 % inlet % composition(1)
@@ -65,17 +67,24 @@ program test_io_1
 					 End If
 			End do recycle
 
-			!If(mod3%purity + mod3%recovery > max) Then
-			!	max = mod3%purity + mod3%recovery
-			!	optim_x0=x_o
-			!	optim_recov=mod3%recovery
-			!	optim_pur=mod3%purity
-			!End If
-	  !End Do
+			If(mod2%purity0 + mod2%recovery0 > max) Then
+				max = mod2%purity0 + mod2%recovery0
+				optim_x0=x_o
+				optim_recov=mod2%recovery0
+				optim_pur=mod2%purity0
+			End If
 
-		print *, 'Optimal results with x0 = ', optim_x0
-		print *, 'optim_recovery = ', optim_recov
-		print *, 'optim_purity = ', optim_pur
+			print *, '---------------------------------------------------------------'
+			print *, mod1%mname, mod1%theta, mod1%purity0, mod1%recovery0
+			print *, mod2%mname, mod2%theta, mod2%purity0, mod2%recovery0
+			print *, mod3%mname, mod3%theta, mod3%purity,  mod3%recovery
+			print *, '---------------------------------------------------------------'
+	  End Do
+	End Do
+
+		!print *, 'Optimal results with x0 = ', optim_x0
+		!print *, 'optim_recovery = ', optim_recov
+		!print *, 'optim_purity = ', optim_pur
 
 		!write(1, *) 'Optimal results with x0 = ', optim_x0
 		!write(1, *) 'optim_recovery = ', optim_recov
@@ -179,7 +188,7 @@ module membrane_modules
 		    !Call prompt_user_for_variables(mn)
 				If(mn%mname == 'Module 1') Then
 					mn%Ph00 = 10.d0
-					mn%Pl00 = 2.d0
+					mn%Pl00 = 1.05d0
 					mn%L00  = 0.1d0
 					mn%Pat 	= 85.3d-6* (76.d0/1.d5) / 100.d0 ! Pat is now Nm3/s/Pa
 					mn%Pbt 	= 3.2d-6* (76.d0/1.d5) / 100.d0
@@ -196,7 +205,7 @@ module membrane_modules
 					mn%fhb	= 1.d0
 
 				Else If(mn%mname == 'Module 3') Then
-					mn%Ph00 = 2.d0
+					mn%Ph00 = 1.05d0
 					mn%Pl00 = 0.d0
 					mn%L00  = 0.015d0
 					mn%Pat 	= 95.0d-6* (76.d0/1.d5) / 100.d0 ! Pat is now Nm3/s/Pa
