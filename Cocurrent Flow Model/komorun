@@ -1,0 +1,11 @@
+#clear
+#sudo rm membrane_modules_cocurrent.o universal_parameters_cocurrent.o mymathlib.o membrane_modules_cocurrent.mod universal_parameters_cocurrent.mod mymathlib.mod
+gfortran -ffree-form -c universal_parameters_cocurrent.f90 membrane_modules_cocurrent.f90 cocurrentflow.f90 # mymathlib.f90
+gfortran -o cocurrent_res cocurrentflow.o membrane_modules_cocurrent.o universal_parameters_cocurrent.o # mymathlib.o
+echo "***********************************"
+echo "Linked and Compiled successfully!"
+echo "Now running..."
+echo "***********************************"
+
+#./cocurrent_res | sed -r '/test/ N;N;N; s/(.*)\n([A-Za-z]*)\s*(.*)\n(.*)\n.*/\1  \2 \3  \4/' > cocurrent_results.csv
+./cocurrent_res
