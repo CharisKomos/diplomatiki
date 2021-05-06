@@ -1,0 +1,11 @@
+#clear
+#sudo rm membrane_modules_cross.o universal_parameters_cross.o membrane_modules_cross.mod universal_parameters_cross.mod
+gfortran -ffree-form -c universal_parameters_cross.f90 membrane_modules_cross.f90 crossflow.f90 # mymathlib.f90
+gfortran -o cross_res crossflow.o membrane_modules_cross.o universal_parameters_cross.o # mymathlib.o
+echo "***********************************"
+echo "Linked and Compiled successfully!"
+echo "Now running..."
+echo "***********************************"
+
+#./cross_res | sed -r '/test/ N;N;N; s/(.*)\n([A-Za-z]*)\s*(.*)\n(.*)\n.*/\1  \2 \3  \4/' > cross_results.csv
+./cross_res
