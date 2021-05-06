@@ -1,0 +1,10 @@
+#clear
+gfortran -ffree-form -c universal_parameters_countercurrent.f90 membrane_modules_countercurrent.f90 countercurrentflow.f90
+gfortran -o countercurrent_res countercurrentflow.o membrane_modules_countercurrent.o universal_parameters_countercurrent.o
+echo "***********************************"
+echo "Linked and Compiled successfully!"
+echo "Now running..."
+echo "***********************************"
+
+#./countercurrent_res | sed -r '/test/ N;N;N; s/(.*)\n([A-Za-z]*)\s*(.*)\n(.*)\n.*/\1  \2 \3  \4/' > countercurrent_results.csv
+./countercurrent_res
